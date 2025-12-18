@@ -2,7 +2,18 @@
 @section('content')
 
     <section>
-        <h2 class="text-center my-3">{{ $project->name }} - Task Board</h2>
+        <div class="container">
+            <div class="position-relative d-flex flex-column flex-md-row align-items-center my-3">
+                <a href="{{ route('dashboard') }}" class="mb-2 mb-md-0 text-decoration-none bg-secondary text-white p-2 rounded">Back to Project</a>
+                <h2 class="position-absolute start-50 translate-middle-x m-0 d-none d-md-block">
+                    {{ $project->name }} - Task Board
+                </h2>
+                <h2 class="d-block d-md-none text-center m-0">
+                    {{ $project->name }} - Task Board
+                </h2>
+            </div>
+        </div>
+
         <div class="row justify-content-center my-3">
             <div class="col-lg-5 col-12">
                 <div class="mb-3">
@@ -74,7 +85,8 @@
                                             <option value="done" {{ $value->status == 'done' ? 'selected' : '' }}>Done</option>
                                         </select>
 
-                                        <button class="btn btn-danger btn-sm">Delete</button>
+                                        <button class="btn btn-danger btn-sm task-delete"
+                                            data-id="{{ $value->id }}">Delete</button>
                                     </div>
                                 </div>
                             @endforeach
@@ -100,7 +112,8 @@
                                             <option value="done" {{ $value->status == 'done' ? 'selected' : '' }}>Done</option>
                                         </select>
 
-                                        <button class="btn btn-danger btn-sm">Delete</button>
+                                        <button class="btn btn-danger btn-sm task-delete"
+                                            data-id="{{ $value->id }}">Delete</button>
                                     </div>
                                 </div>
                             @endforeach
@@ -125,7 +138,8 @@
                                             <option value="done" {{ $value->status == 'done' ? 'selected' : '' }}>Done</option>
                                         </select>
 
-                                        <button class="btn btn-danger btn-sm">Delete</button>
+                                        <button class="btn btn-danger btn-sm task-delete"
+                                            data-id="{{ $value->id }}">Delete</button>
                                     </div>
                                 </div>
                             @endforeach
@@ -138,6 +152,7 @@
     </section>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         // CSRF setup
@@ -172,6 +187,7 @@
             updateProgressBar(initialProgress);
         });
 
+        // task edit
         $(document).on('change', '.task-status', function () {
             let select = $(this);
             let taskId = select.data('id');
@@ -196,10 +212,70 @@
                 }
             });
         });
+
+        // task delete
+        $(document).on('click', '.task-delete', function () {
+            let button = $(this);
+            let taskId = button.data('id');
+            let card = button.closest('.task-card');
+
+            // SweetAlert confirmation
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This task will be permanently deleted!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // AJAX delete
+                    $.ajax({
+                        url: `/task/${taskId}`,
+                        type: 'DELETE',
+                        success: function (res) {
+                            // Remove card
+                            card.fadeOut(200, function () { $(this).remove(); });
+
+                            // Update project progress dynamically
+                            if (res.project_progress !== undefined) {
+                                let bar = $('#project-progress-bar');
+                                let text = $('#project-progress-text');
+
+                                bar.css('width', res.project_progress + '%')
+                                    .attr('aria-valuenow', res.project_progress)
+                                    .text(res.project_progress + '%');
+                                text.text(res.project_progress + '%');
+
+                                // Dynamic color
+                                bar.removeClass('bg-danger bg-warning bg-success');
+                                if (res.project_progress <= 33) bar.addClass('bg-danger');
+                                else if (res.project_progress <= 66) bar.addClass('bg-warning');
+                                else bar.addClass('bg-success');
+                            }
+
+                            // Success alert
+                            Swal.fire(
+                                'Deleted!',
+                                'The task has been deleted.',
+                                'success'
+                            );
+                        },
+                        error: function (xhr) {
+                            console.log(xhr.responseText);
+                            Swal.fire(
+                                'Error!',
+                                'Failed to delete task.',
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
+        });
+
     </script>
-
-
-
-
 
 @endsection

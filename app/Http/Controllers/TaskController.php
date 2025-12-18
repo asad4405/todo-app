@@ -101,6 +101,30 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        //
+        $project = Project::find($task->project_id);
+        $task->delete();
+
+        // Recalculate project progress
+        $tasks = $project->tasks;
+        $totalTasks = $tasks->count();
+        $totalProgress = 0;
+
+        if ($totalTasks > 0) {
+            foreach ($tasks as $t) {
+                if ($t->status == 'todo') $totalProgress += 0;
+                elseif ($t->status == 'inprogress') $totalProgress += 50;
+                elseif ($t->status == 'done') $totalProgress += 100;
+            }
+            $project->progress = round($totalProgress / $totalTasks);
+        } else {
+            $project->progress = 0;
+        }
+
+        $project->save();
+
+        return response()->json([
+            'success' => true,
+            'project_progress' => $project->progress
+        ]);
     }
 }

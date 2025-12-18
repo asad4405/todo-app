@@ -10,6 +10,13 @@
 
         <div class="bg-light">
             <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 col-12">
+                        @if(session('success'))
+                            <div class="alert alert-success">{{ session('success') }}</div>
+                        @endif
+                    </div>
+                </div>
                 <h2 class="mb-4 text-center">Project List</h2>
                 <div class="row g-4">
                     @foreach ($projects as $value)
@@ -36,12 +43,14 @@
                                                 <li><a class="dropdown-item"
                                                         href="{{ route('project.edit', $value->id) }}">Edit</a></li>
                                                 <li>
-                                                    <form action="{{ route('project.destroy', $value->id) }}" method="POST"
-                                                        onsubmit="return confirm('Are you sure?');">
+                                                    <form class="delete-task-form"
+                                                        action="{{ route('project.destroy', $value->id) }}" method="POST">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button class="dropdown-item text-danger" type="submit">Delete</button>
                                                     </form>
+
+
                                                 </li>
                                             </ul>
                                         </div>
@@ -131,6 +140,37 @@
             </div>
         </div>
     </section>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const forms = document.querySelectorAll('.delete-task-form');
+
+            forms.forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault(); // prevent default submit
+
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "This task will be permanently deleted!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit(); // submit form if confirmed
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
+
 
 
 @endsection
