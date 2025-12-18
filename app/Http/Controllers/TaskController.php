@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -65,8 +66,35 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
-        //
+        $task->update([
+            'status' => $request->status
+        ]);
+
+        $project = Project::find($task->project_id);
+        $tasks = $project->tasks;
+
+        $totalTasks = $tasks->count();
+        $totalProgress = 0;
+
+        if ($totalTasks > 0) {
+            foreach ($tasks as $t) {
+                if ($t->status == 'todo') $totalProgress += 0;
+                elseif ($t->status == 'inprogress') $totalProgress += 50;
+                elseif ($t->status == 'done') $totalProgress += 100;
+            }
+            $project->progress = round($totalProgress / $totalTasks);
+        } else {
+            $project->progress = 0;
+        }
+
+        $project->save();
+
+        return response()->json([
+            'success' => true,
+            'project_progress' => $project->progress
+        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.
