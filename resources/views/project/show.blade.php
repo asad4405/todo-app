@@ -22,7 +22,10 @@
                 <div class="container">
                     <div class="card shadow-lg p-4">
                         <h3 class="card-title text-center mb-4">Add New Task</h3>
-                        <form action="" method="POST">
+                        @if(session('success'))
+                            <div class="alert alert-success">{{ session('success') }}</div>
+                        @endif
+                        <form action="{{ route('task.store') }}" method="POST">
                             @csrf
                             <div class="mb-3">
                                 <label for="taskName" class="form-label">Task Name</label>
