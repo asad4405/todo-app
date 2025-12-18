@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -49,7 +50,10 @@ class ProjectController extends Controller
     public function show(string $id)
     {
         $project = Project::find($id);
-        return view('project.show',compact('project'));
+        $todo_tasks = Task::where('project_id',$project->id)->where('status','todo')->get();
+        $inprogress_tasks = Task::where('project_id',$project->id)->where('status','inprogress')->get();
+        $done_tasks = Task::where('project_id',$project->id)->where('status','done')->get();
+        return view('project.show',compact('project','todo_tasks','inprogress_tasks','done_tasks'));
     }
 
     /**

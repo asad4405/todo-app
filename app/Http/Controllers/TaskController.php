@@ -35,6 +35,7 @@ class TaskController extends Controller
         ]);
 
         $task              = new Task();
+        $task->project_id  = $request->project_id;
         $task->user_id     = Auth::id();
         $task->name        = $request->name;
         $task->description = $request->description;
